@@ -1,0 +1,12 @@
+[
+  {"id": 3936456, "name": "Lima", "lat": -12.0464, "lon": -77.0428, "country": "PE", "tz": "America/Lima"},
+  {"id": 3941584, "name": "Arequipa", "lat": -16.3989, "lon": -71.5350, "country": "PE", "tz": "America/Lima"},
+  {"id": 3691175, "name": "Trujillo", "lat": -8.1117, "lon": -79.0288, "country": "PE", "tz": "America/Lima"},
+  {"id": 3698304, "name": "Piura", "lat": -5.1945, "lon": -80.6328, "country": "PE", "tz": "America/Lima"},
+  {"id": 3698359, "name": "Puno", "lat": -15.8402, "lon": -70.0219, "country": "PE", "tz": "America/Lima"},
+  {"id": 3946820, "name": "Cusco", "lat": -13.5167, "lon": -71.9780, "country": "PE", "tz": "America/Lima"},
+  {"id": 3693528, "name": "Iquitos", "lat": -3.7491, "lon": -73.2538, "country": "PE", "tz": "America/Lima"},
+  {"id": 3691550, "name": "Tacna", "lat": -18.0066, "lon": -70.2463, "country": "PE", "tz": "America/Lima"},
+  {"id": 3939460, "name": "Huancayo", "lat": -12.0667, "lon": -75.2333, "country": "PE", "tz": "America/Lima"},
+  {"id": 3698350, "name": "Chiclayo", "lat": -6.7714, "lon": -79.8409, "country": "PE", "tz": "America/Lima"}
+]

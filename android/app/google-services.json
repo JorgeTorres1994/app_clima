@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "224832399926",
+    "project_id": "appclima-529f2",
+    "storage_bucket": "appclima-529f2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:224832399926:android:6a85a12690f0dc7a130697",
+        "android_client_info": {
+          "package_name": "com.example.app_clima"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-Vc7WKiprcTr7ILk-aGsWULWGNUgruEg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
