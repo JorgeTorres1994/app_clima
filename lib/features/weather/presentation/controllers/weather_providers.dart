@@ -13,7 +13,7 @@ import '../../domain/entities/forecast.dart';
 
 final remoteDSProvider = Provider<WeatherRemoteDS>((ref) {
   final dio = ref.watch(dioProvider);
-  return WeatherRemoteDS(dio);
+  return WeatherRemoteDS(dio, ref);
 });
 
 final localDSProvider = Provider<WeatherLocalDS>((ref) {
@@ -41,17 +41,26 @@ class CitySelection {
   final String name;
   final double lat;
   final double lon;
-  const CitySelection(this.name, this.lat, this.lon);
+  final String displayName; // ej. "Cusco, PE"
+  CitySelection(this.name, this.lat, this.lon, {String? display})
+    : displayName = display ?? name;
 }
 
-final selectedCityProvider = StateProvider<CitySelection?>((_) => null);
+final selectedCityProvider = StateProvider<CitySelection?>((_) => CitySelection(
+  'Lima', -12.0464, -77.0428, display: 'Lima, PE',
+));
 
 /// Clima actual (Async) en base a ciudad seleccionada (o Lima por defecto)
 final currentWeatherByCityProvider = FutureProvider<Weather>((ref) async {
   final usecase = ref.watch(getCurrentWeatherProvider);
   final selected = ref.watch(selectedCityProvider);
   if (selected != null) {
-    return usecase.byCoords(selected.lat, selected.lon, units: 'metric', lang: 'es');
+    return usecase.byCoords(
+      selected.lat,
+      selected.lon,
+      units: 'metric',
+      lang: 'es',
+    );
   }
   // Fallback: Lima
   return usecase.byQuery('Lima', units: 'metric', lang: 'es');

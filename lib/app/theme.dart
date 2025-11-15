@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 
+ThemeData _base(Brightness b) {
+  final seed = const Color(0xFF0EA5E9); // Sky-500
+  final cs = ColorScheme.fromSeed(seedColor: seed, brightness: b);
 
-final lightTheme = ThemeData(
-useMaterial3: true,
-colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4FACFE)),
-brightness: Brightness.light,
-);
+  return ThemeData(
+    useMaterial3: true,
+    colorScheme: cs,
+    visualDensity: VisualDensity.standard,
+    cardTheme: CardThemeData(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      margin: EdgeInsets.zero,
+    ),
+    listTileTheme: const ListTileThemeData(
+      contentPadding: EdgeInsets.symmetric(horizontal: 12),
+      dense: false,
+    ),
+  );
+}
 
-
-final darkTheme = ThemeData(
-useMaterial3: true,
-colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4FACFE), brightness: Brightness.dark),
-brightness: Brightness.dark,
-);
+final lightTheme = _base(Brightness.light);
+final darkTheme  = _base(Brightness.dark);

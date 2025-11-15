@@ -21,7 +21,8 @@ Weather _$WeatherFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Weather {
-  String get locationName => throw _privateConstructorUsedError;
+  String get locationName =>
+      throw _privateConstructorUsedError; // lo podemos sobreescribir con copyWith
   double get lat => throw _privateConstructorUsedError;
   double get lon => throw _privateConstructorUsedError;
   double get temp => throw _privateConstructorUsedError;
@@ -30,7 +31,9 @@ mixin _$Weather {
   String get icon => throw _privateConstructorUsedError;
   double get humidity => throw _privateConstructorUsedError;
   double get windKph => throw _privateConstructorUsedError;
-  DateTime get updatedAt => throw _privateConstructorUsedError;
+  DateTime get updatedAt => throw _privateConstructorUsedError; // Nuevos campos
+  int get utcOffsetSeconds => throw _privateConstructorUsedError;
+  String get timezone => throw _privateConstructorUsedError;
 
   /// Serializes this Weather to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -57,6 +60,8 @@ abstract class $WeatherCopyWith<$Res> {
     double humidity,
     double windKph,
     DateTime updatedAt,
+    int utcOffsetSeconds,
+    String timezone,
   });
 }
 
@@ -85,6 +90,8 @@ class _$WeatherCopyWithImpl<$Res, $Val extends Weather>
     Object? humidity = null,
     Object? windKph = null,
     Object? updatedAt = null,
+    Object? utcOffsetSeconds = null,
+    Object? timezone = null,
   }) {
     return _then(
       _value.copyWith(
@@ -128,6 +135,14 @@ class _$WeatherCopyWithImpl<$Res, $Val extends Weather>
                 ? _value.updatedAt
                 : updatedAt // ignore: cast_nullable_to_non_nullable
                       as DateTime,
+            utcOffsetSeconds: null == utcOffsetSeconds
+                ? _value.utcOffsetSeconds
+                : utcOffsetSeconds // ignore: cast_nullable_to_non_nullable
+                      as int,
+            timezone: null == timezone
+                ? _value.timezone
+                : timezone // ignore: cast_nullable_to_non_nullable
+                      as String,
           )
           as $Val,
     );
@@ -153,6 +168,8 @@ abstract class _$$WeatherImplCopyWith<$Res> implements $WeatherCopyWith<$Res> {
     double humidity,
     double windKph,
     DateTime updatedAt,
+    int utcOffsetSeconds,
+    String timezone,
   });
 }
 
@@ -180,6 +197,8 @@ class __$$WeatherImplCopyWithImpl<$Res>
     Object? humidity = null,
     Object? windKph = null,
     Object? updatedAt = null,
+    Object? utcOffsetSeconds = null,
+    Object? timezone = null,
   }) {
     return _then(
       _$WeatherImpl(
@@ -223,6 +242,14 @@ class __$$WeatherImplCopyWithImpl<$Res>
             ? _value.updatedAt
             : updatedAt // ignore: cast_nullable_to_non_nullable
                   as DateTime,
+        utcOffsetSeconds: null == utcOffsetSeconds
+            ? _value.utcOffsetSeconds
+            : utcOffsetSeconds // ignore: cast_nullable_to_non_nullable
+                  as int,
+        timezone: null == timezone
+            ? _value.timezone
+            : timezone // ignore: cast_nullable_to_non_nullable
+                  as String,
       ),
     );
   }
@@ -242,6 +269,8 @@ class _$WeatherImpl implements _Weather {
     required this.humidity,
     required this.windKph,
     required this.updatedAt,
+    this.utcOffsetSeconds = 0,
+    this.timezone = 'UTC',
   });
 
   factory _$WeatherImpl.fromJson(Map<String, dynamic> json) =>
@@ -249,6 +278,7 @@ class _$WeatherImpl implements _Weather {
 
   @override
   final String locationName;
+  // lo podemos sobreescribir con copyWith
   @override
   final double lat;
   @override
@@ -267,10 +297,17 @@ class _$WeatherImpl implements _Weather {
   final double windKph;
   @override
   final DateTime updatedAt;
+  // Nuevos campos
+  @override
+  @JsonKey()
+  final int utcOffsetSeconds;
+  @override
+  @JsonKey()
+  final String timezone;
 
   @override
   String toString() {
-    return 'Weather(locationName: $locationName, lat: $lat, lon: $lon, temp: $temp, feelsLike: $feelsLike, condition: $condition, icon: $icon, humidity: $humidity, windKph: $windKph, updatedAt: $updatedAt)';
+    return 'Weather(locationName: $locationName, lat: $lat, lon: $lon, temp: $temp, feelsLike: $feelsLike, condition: $condition, icon: $icon, humidity: $humidity, windKph: $windKph, updatedAt: $updatedAt, utcOffsetSeconds: $utcOffsetSeconds, timezone: $timezone)';
   }
 
   @override
@@ -292,7 +329,11 @@ class _$WeatherImpl implements _Weather {
                 other.humidity == humidity) &&
             (identical(other.windKph, windKph) || other.windKph == windKph) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.utcOffsetSeconds, utcOffsetSeconds) ||
+                other.utcOffsetSeconds == utcOffsetSeconds) &&
+            (identical(other.timezone, timezone) ||
+                other.timezone == timezone));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -309,6 +350,8 @@ class _$WeatherImpl implements _Weather {
     humidity,
     windKph,
     updatedAt,
+    utcOffsetSeconds,
+    timezone,
   );
 
   /// Create a copy of Weather
@@ -337,12 +380,14 @@ abstract class _Weather implements Weather {
     required final double humidity,
     required final double windKph,
     required final DateTime updatedAt,
+    final int utcOffsetSeconds,
+    final String timezone,
   }) = _$WeatherImpl;
 
   factory _Weather.fromJson(Map<String, dynamic> json) = _$WeatherImpl.fromJson;
 
   @override
-  String get locationName;
+  String get locationName; // lo podemos sobreescribir con copyWith
   @override
   double get lat;
   @override
@@ -360,7 +405,11 @@ abstract class _Weather implements Weather {
   @override
   double get windKph;
   @override
-  DateTime get updatedAt;
+  DateTime get updatedAt; // Nuevos campos
+  @override
+  int get utcOffsetSeconds;
+  @override
+  String get timezone;
 
   /// Create a copy of Weather
   /// with the given fields replaced by the non-null parameter values.

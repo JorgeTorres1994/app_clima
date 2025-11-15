@@ -18,6 +18,8 @@ _$WeatherImpl _$$WeatherImplFromJson(Map<String, dynamic> json) =>
       humidity: (json['humidity'] as num).toDouble(),
       windKph: (json['windKph'] as num).toDouble(),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      utcOffsetSeconds: (json['utcOffsetSeconds'] as num?)?.toInt() ?? 0,
+      timezone: json['timezone'] as String? ?? 'UTC',
     );
 
 Map<String, dynamic> _$$WeatherImplToJson(_$WeatherImpl instance) =>
@@ -32,4 +34,6 @@ Map<String, dynamic> _$$WeatherImplToJson(_$WeatherImpl instance) =>
       'humidity': instance.humidity,
       'windKph': instance.windKph,
       'updatedAt': instance.updatedAt.toIso8601String(),
+      'utcOffsetSeconds': instance.utcOffsetSeconds,
+      'timezone': instance.timezone,
     };
