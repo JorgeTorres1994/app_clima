@@ -1,15 +1,28 @@
+import 'package:app_clima/core/network/retry_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:dio/dio.dart';
 import 'app/app.dart';
 
-final dioProvider = Provider<Dio>((_) {
+/*final dioProvider = Provider<Dio>((_) {
   return Dio(BaseOptions(
     baseUrl: 'https://api.open-meteo.com/v1', // <- directo a Open-Meteo
     connectTimeout: const Duration(seconds: 7),
     receiveTimeout: const Duration(seconds: 7),
   ));
+});*/
+
+final dioProvider = Provider<Dio>((_) {
+  final dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://api.open-meteo.com/v1',
+      connectTimeout: const Duration(seconds: 7),
+      receiveTimeout: const Duration(seconds: 7),
+    ),
+  );
+  dio.interceptors.add(RetryInterceptor(dio));
+  return dio;
 });
 
 final hiveBoxProvider = Provider<Box>((_) => Hive.box('cache'));

@@ -1,4 +1,7 @@
 // lib/features/weather/presentation/pages/home_page.dart
+import 'package:app_clima/features/weather/favorites/application/favorites_providers.dart';
+import 'package:app_clima/features/weather/favorites/application/location_providers.dart';
+import 'package:app_clima/features/weather/favorites/domain/favorite_city.dart';
 import 'package:app_clima/features/weather/settings/application/settings_providers.dart';
 import 'package:app_clima/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -51,10 +54,47 @@ class HomePage extends ConsumerWidget {
     final weatherAsync = ref.watch(currentWeatherByCityProvider);
     final forecastAsync = ref.watch(forecastByCityProvider);
 
+    final setCityState = ref.watch(setCurrentCityProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(t.home_title),
         actions: [
+          IconButton(
+            tooltip: 'Mi ubicación',
+            onPressed: setCityState.isLoading
+                ? null
+                : () async {
+                    try {
+                      await ref.refresh(setCurrentCityProvider.future);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Ubicación establecida'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      // Solo si falló TODO (incluida la ubicación del dispositivo)
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'No se pudo obtener la ubicación del dispositivo: $e',
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+            icon: setCityState.isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.my_location),
+          ),
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => context.push('/search'),
@@ -100,14 +140,18 @@ class _CurrentCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = AppLocalizations.of(context)!;
 
-    // Título: prioriza el nombre de la entidad (ya mapeado), si no toma el seleccionado
+    // Nombre a mostrar
     final sel = ref.watch(selectedCityProvider);
-    /*final cityTitle = (w.locationName.isNotEmpty)
+    final cityTitle = (w.locationName.isNotEmpty)
         ? w.locationName
-        : (sel?.displayName ?? sel?.name ?? '—');*/
-    final cityTitle = sel?.displayName ?? sel?.name ?? w.locationName;
+        : (sel?.displayName ?? sel?.name ?? '—');
 
-    // Hora local usando utcOffsetSeconds del API
+    // Estado de favoritos
+    final favs = ref.watch(favoritesProvider);
+    final isFav =
+        sel != null && favs.any((c) => c.lat == sel.lat && c.lon == sel.lon);
+
+    // Hora local (ya lo tenías)
     final hourFmt = ref.watch(settingsProvider.select((s) => s.hourFormat));
     final localNow = DateTime.now().toUtc().add(
       Duration(seconds: w.utcOffsetSeconds),
@@ -132,20 +176,39 @@ class _CurrentCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            /*Text(
-              cityTitle,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium!.copyWith(color: Colors.white),
-              textAlign: TextAlign.center,
-            ),*/
-            Text(
-              cityTitle, // 👈 ahora verás "Iquitos, PE", "Cusco, PE", etc.
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium!.copyWith(color: Colors.white),
-              textAlign: TextAlign.center,
+            // 🔹 Título + botón de favorito
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    cityTitle,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium!.copyWith(color: Colors.white),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: isFav
+                      ? 'Quitar de favoritos'
+                      : 'Agregar a favoritos',
+                  icon: Icon(
+                    isFav ? Icons.star : Icons.star_border,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    if (sel == null) return;
+                    ref
+                        .read(favoritesProvider.notifier)
+                        .toggle(
+                          FavoriteCity(sel.displayName, sel.lat, sel.lon),
+                        );
+                  },
+                ),
+              ],
             ),
+
             const SizedBox(height: 8),
             Text(
               '${tempC.toStringAsFixed(0)}°C  |  ${tempF.toStringAsFixed(0)}°F',
@@ -157,6 +220,7 @@ class _CurrentCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 12),
+
             Wrap(
               alignment: WrapAlignment.center,
               spacing: 24,
@@ -170,12 +234,10 @@ class _CurrentCard extends ConsumerWidget {
                   label: t.home_humidity,
                   value: '${w.humidity.toStringAsFixed(0)}%',
                 ),
-                _Metric(
-                  label: t.home_updated_short,
-                  value: timeStr,
-                ), // hora local
+                _Metric(label: t.home_updated_short, value: timeStr),
               ],
             ),
+
             const SizedBox(height: 8),
             if (w.condition.isNotEmpty)
               Chip(

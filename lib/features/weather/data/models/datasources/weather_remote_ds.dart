@@ -10,14 +10,14 @@ class WeatherRemoteDS {
   WeatherRemoteDS(this._dio, this._ref);
 
   /// Obtiene el clima actual para la ciudad seleccionada y lo mapea a [Weather].
-  Future<Weather> getCurrent() async {
+  /*Future<Weather> getCurrent() async {
     final sel = _ref.read(selectedCityProvider)!;           // ciudad elegida
     final display = '${sel.name}, PE';                      // nombre bonito
     final data = await _fetchCurrentRaw(sel.lat, sel.lon);  // JSON real de Open-Meteo
 
     final cur = (data['current'] as Map<String, dynamic>);
     return Weather(
-      locationName: display, // 👈 mostramos la ciudad elegida (no el timezone)
+      locationName: display,
       lat: sel.lat,
       lon: sel.lon,
       temp: (cur['temperature_2m'] as num).toDouble(),
@@ -30,6 +30,43 @@ class WeatherRemoteDS {
       updatedAt: DateTime.parse(cur['time'] as String).toUtc(),
       utcOffsetSeconds: (data['utc_offset_seconds'] ?? 0) as int,
       timezone: (data['timezone'] ?? 'UTC') as String,
+    );
+  }*/
+
+  // lib/features/weather/data/datasources/weather_remote_ds.dart
+  Future<Weather> getCurrent() async {
+    final sel = _ref.read(selectedCityProvider)!;
+
+    final display = (sel.displayName?.isNotEmpty ?? false)
+        ? sel.displayName!
+        : sel.name;
+
+    // Usa tu método real que llama a Open-Meteo
+    final r = await _dio.get(
+      '/forecast',
+      queryParameters: {
+        'latitude': sel.lat,
+        'longitude': sel.lon,
+        'current':
+            'temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m',
+        'timezone': 'auto',
+      },
+    );
+
+    final cur = r.data['current'] as Map<String, dynamic>;
+    return Weather(
+      locationName: display, // 👈 nombre tal cual
+      lat: sel.lat,
+      lon: sel.lon,
+      temp: (cur['temperature_2m'] as num).toDouble(),
+      feelsLike: (cur['apparent_temperature'] as num).toDouble(),
+      condition: '', // o mapea si tienes weather_code → texto
+      icon: '01d', // idem
+      humidity: (cur['relative_humidity_2m'] as num).toDouble(),
+      windKph: ((cur['wind_speed_10m'] as num).toDouble()),
+      updatedAt: DateTime.parse(cur['time'] as String).toUtc(),
+      utcOffsetSeconds: (r.data['utc_offset_seconds'] as int?) ?? 0,
+      timezone: (r.data['timezone'] as String?) ?? 'UTC',
     );
   }
 
