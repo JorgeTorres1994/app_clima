@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-
 import 'router.dart';
 
 class WeatherApp extends ConsumerWidget {
@@ -27,18 +26,15 @@ class WeatherApp extends ConsumerWidget {
       colorSchemeSeed: const Color(0xFF0EA5E9),
     );
 
-    final router = createRouter();
+    // 👇 Pásale el ref al router
+    final router = createRouter(ref);
 
     return MaterialApp.router(
-      // Título según idioma
       onGenerateTitle: (ctx) => AppLocalizations.of(ctx)!.appTitle,
-
       theme: lightTheme,
       darkTheme: darkTheme,
       themeMode: mode,
-
-      // 🌎 i18n
-      locale: locale, // cambia en vivo con Ajustes
+      locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [
         AppLocalizations.delegate,
@@ -46,7 +42,6 @@ class WeatherApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
-import '../../favorites/domain/favorite_city.dart';
+import '../domain/favorite_city.dart';
 
 const _kFavKey = 'favorites.list';
 
