@@ -1,0 +1,466 @@
+// lib/features/weather/presentation/pages/home_page.dart
+import 'package:app_clima/features/favorites/application/favorites_repo.dart';
+import 'package:app_clima/features/favorites/application/location_providers.dart';
+import 'package:app_clima/features/favorites/domain/favorite_city.dart';
+import 'package:app_clima/features/weather/settings/application/settings_providers.dart';
+import 'package:app_clima/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+
+import '../../domain/entities/weather.dart';
+import '../../domain/entities/forecast.dart';
+import '../controllers/weather_providers.dart';
+
+/// Helpers locales
+double _cToF(double c) => (c * 9 / 5) + 32;
+
+LinearGradient _gradientFor(String condition) {
+  final c = condition.toLowerCase();
+  if (c.contains('rain') || c.contains('lluv')) {
+    return const LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF93C5FD)]);
+  } else if (c.contains('storm') || c.contains('torment')) {
+    return const LinearGradient(colors: [Color(0xFF312E81), Color(0xFF4338CA)]);
+  } else if (c.contains('cloud') || c.contains('nubl')) {
+    return const LinearGradient(colors: [Color(0xFF64748B), Color(0xFF94A3B8)]);
+  }
+  return const LinearGradient(colors: [Color(0xFF0EA5E9), Color(0xFF38BDF8)]);
+}
+
+class _ShimmerBox extends StatelessWidget {
+  final double height, width;
+  const _ShimmerBox({required this.height, required this.width});
+  @override
+  Widget build(BuildContext context) {
+    final c = Theme.of(context).colorScheme.surfaceVariant.withOpacity(.38);
+    return Container(
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: c,
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+  }
+}
+
+class HomePage extends ConsumerWidget {
+  const HomePage({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+    final weatherAsync = ref.watch(currentWeatherByCityProvider);
+    final forecastAsync = ref.watch(forecastByCityProvider);
+
+    final setCityState = ref.watch(setCurrentCityProvider);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(t.home_title),
+        actions: [
+          IconButton(
+            tooltip: 'Mi ubicación',
+            onPressed: setCityState.isLoading
+                ? null
+                : () async {
+                    try {
+                      await ref.refresh(setCurrentCityProvider.future);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Ubicación establecida'),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      // Solo si falló TODO (incluida la ubicación del dispositivo)
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'No se pudo obtener la ubicación del dispositivo: $e',
+                            ),
+                          ),
+                        );
+                      }
+                    }
+                  },
+            icon: setCityState.isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.my_location),
+          ),
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push('/search'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => context.push('/settings'),
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(currentWeatherByCityProvider);
+          ref.invalidate(forecastByCityProvider);
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            weatherAsync.when(
+              loading: () => const _CurrentCardSkeleton(),
+              error: (e, _) => _ErrorBox(e.toString()),
+              data: (w) => _CurrentCard(w),
+            ),
+            const SizedBox(height: 24),
+            forecastAsync.when(
+              loading: () => const _ForecastSkeleton(),
+              error: (e, _) => _ErrorBox(e.toString()),
+              data: (f) => _ForecastSection(f),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CurrentCard extends ConsumerWidget {
+  final Weather w;
+  const _CurrentCard(this.w);
+
+  double _cToF(double c) => (c * 9 / 5) + 32;
+
+  LinearGradient _gradientFor(String condition) =>
+      const LinearGradient(colors: [Colors.blue, Colors.lightBlueAccent]);
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = AppLocalizations.of(context)!;
+
+    final sel = ref.watch(selectedCityProvider);
+    final cityTitle = (w.locationName.isNotEmpty)
+        ? w.locationName
+        : (sel?.displayName ?? sel?.name ?? '—');
+
+    // Construye el favorito actual e ID estable
+    final FavoriteCity? favCity = (sel == null)
+        ? null
+        : FavoriteCity(sel.displayName ?? sel.name, sel.lat, sel.lon);
+    final String? favId = favCity?.id;
+
+    // Provider con clave estable (string). Si no hay ciudad, false.
+    final isFavAsync = (favId == null)
+        ? const AsyncValue<bool>.data(false)
+        : ref.watch(isFavoriteProvider(favId));
+
+    // Hora local
+    final hourFmt = ref.watch(settingsProvider.select((s) => s.hourFormat));
+    final localNow = DateTime.now().toUtc().add(
+      Duration(seconds: w.utcOffsetSeconds),
+    );
+    final timeStr = (hourFmt == HourFormat.h)
+        ? DateFormat('HH:mm').format(localNow)
+        : DateFormat('h:mm a').format(localNow);
+
+    final tempC = w.temp;
+    final tempF = _cToF(tempC);
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: _gradientFor(w.condition),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(20),
+      child: DefaultTextStyle(
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium!.copyWith(color: Colors.white),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    cityTitle,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium!.copyWith(color: Colors.white),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+                isFavAsync.when(
+                  loading: () => const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                  error: (e, _) => IconButton(
+                    tooltip: 'Reintentar',
+                    icon: const Icon(Icons.refresh, color: Colors.white),
+                    onPressed: () {
+                      if (favId != null)
+                        ref.invalidate(isFavoriteProvider(favId));
+                    },
+                  ),
+                  data: (isFav) => IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: isFav
+                        ? 'Quitar de favoritos'
+                        : 'Agregar a favoritos',
+                    icon: Icon(
+                      isFav ? Icons.star : Icons.star_border,
+                      color: Colors.white,
+                    ),
+                    onPressed: (favCity == null || favId == null)
+                        ? null
+                        : () async {
+                            try {
+                              await ref
+                                  .read(favoritesRepoProvider)
+                                  .toggle(favCity);
+                              // Refresca el provider del icono
+                              ref.invalidate(isFavoriteProvider(favId));
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      isFav
+                                          ? 'Eliminado de favoritos'
+                                          : 'Añadido a favoritos',
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error al guardar: $e'),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+            Text(
+              '${tempC.toStringAsFixed(0)}°C  |  ${tempF.toStringAsFixed(0)}°F',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                color: Colors.white,
+                letterSpacing: -1,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 24,
+              runSpacing: 8,
+              children: [
+                _Metric(
+                  label: t.home_wind,
+                  value: '${w.windKph.toStringAsFixed(0)} km/h',
+                ),
+                _Metric(
+                  label: t.home_humidity,
+                  value: '${w.humidity.toStringAsFixed(0)}%',
+                ),
+                _Metric(label: t.home_updated_short, value: timeStr),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+            if (w.condition.isNotEmpty)
+              Chip(
+                label: Text(w.condition),
+                backgroundColor: Colors.white.withOpacity(.18),
+                side: BorderSide.none,
+                labelStyle: const TextStyle(color: Colors.white),
+                visualDensity: VisualDensity.compact,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Metric extends StatelessWidget {
+  final String label;
+  final String value;
+  const _Metric({required this.label, required this.value});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(color: Colors.white),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: Colors.white70),
+        ),
+      ],
+    );
+  }
+}
+
+class _CurrentCardSkeleton extends StatelessWidget {
+  const _CurrentCardSkeleton({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: const [
+            _ShimmerBox(height: 18, width: 160),
+            SizedBox(height: 12),
+            _ShimmerBox(height: 56, width: 240),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _ShimmerBox(height: 14, width: 80),
+                SizedBox(width: 16),
+                _ShimmerBox(height: 14, width: 80),
+                SizedBox(width: 16),
+                _ShimmerBox(height: 14, width: 80),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// =================== Forecast ===================
+class _ForecastSection extends StatelessWidget {
+  final Forecast f;
+  const _ForecastSection(this.f);
+
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(t.home_next_days, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+        Card(
+          child: Column(
+            children: f.daily.take(5).map((d) {
+              final minC = d.min, maxC = d.max;
+              final minF = _cToF(minC), maxF = _cToF(maxC);
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: cs.primaryContainer,
+                  child: const Icon(Icons.calendar_today, size: 18),
+                ),
+                title: Text('${d.date.toLocal().toString().substring(0, 10)}'),
+                subtitle: Text(
+                  '${minF.toStringAsFixed(0)}°F / ${maxF.toStringAsFixed(0)}°F',
+                ),
+                trailing: Text(
+                  '${minC.toStringAsFixed(0)}°C / ${maxC.toStringAsFixed(0)}°C',
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ForecastSkeleton extends StatelessWidget {
+  const _ForecastSkeleton({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _ShimmerBox(height: 20, width: 140),
+        const SizedBox(height: 8),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: List.generate(
+                5,
+                (i) => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      _ShimmerBox(height: 40, width: 40),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: _ShimmerBox(height: 16, width: double.infinity),
+                      ),
+                      SizedBox(width: 12),
+                      _ShimmerBox(height: 16, width: 90),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// =================== Error ===================
+class _ErrorBox extends StatelessWidget {
+  final String msg;
+  const _ErrorBox(this.msg);
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      color: cs.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline, color: cs.onErrorContainer),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Ups: $msg',
+                style: TextStyle(color: cs.onErrorContainer),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

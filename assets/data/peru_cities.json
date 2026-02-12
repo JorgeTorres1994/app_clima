@@ -8,5 +8,21 @@
   {"id": 3693528, "name": "Iquitos", "lat": -3.7491, "lon": -73.2538, "country": "PE", "tz": "America/Lima"},
   {"id": 3691550, "name": "Tacna", "lat": -18.0066, "lon": -70.2463, "country": "PE", "tz": "America/Lima"},
   {"id": 3939460, "name": "Huancayo", "lat": -12.0667, "lon": -75.2333, "country": "PE", "tz": "America/Lima"},
-  {"id": 3698350, "name": "Chiclayo", "lat": -6.7714, "lon": -79.8409, "country": "PE", "tz": "America/Lima"}
+  {"id": 3698350, "name": "Chiclayo", "lat": -6.7714, "lon": -79.8409, "country": "PE", "tz": "America/Lima"},
+
+  {"id": 3698540, "name": "Chachapoyas", "lat": -6.2300, "lon": -77.8700, "country": "PE", "tz": "America/Lima"},
+  {"id": 3696378, "name": "Huaraz", "lat": -9.5300, "lon": -77.5300, "country": "PE", "tz": "America/Lima"},
+  {"id": 3948642, "name": "Abancay", "lat": -13.6300, "lon": -72.8800, "country": "PE", "tz": "America/Lima"},
+  {"id": 3947019, "name": "Ayacucho", "lat": -13.1600, "lon": -74.2200, "country": "PE", "tz": "America/Lima"},
+  {"id": 3699088, "name": "Cajamarca", "lat": -7.1600, "lon": -78.5000, "country": "PE", "tz": "America/Lima"},
+  {"id": 3946083, "name": "El Callao", "lat": -12.0500, "lon": -77.1300, "country": "PE", "tz": "America/Lima"},
+  {"id": 3939470, "name": "Huancavelica", "lat": -12.7900, "lon": -74.9700, "country": "PE", "tz": "America/Lima"},
+  {"id": 3696417, "name": "Huánuco", "lat": -9.9300, "lon": -76.2400, "country": "PE", "tz": "America/Lima"},
+  {"id": 3938527, "name": "Ica", "lat": -14.0800, "lon": -75.7300, "country": "PE", "tz": "America/Lima"},
+  {"id": 3931470, "name": "Puerto Maldonado", "lat": -12.5900, "lon": -69.2000, "country": "PE", "tz": "America/Lima"},
+  {"id": 3934608, "name": "Moquegua", "lat": -17.2000, "lon": -70.9400, "country": "PE", "tz": "America/Lima"},
+  {"id": 3944797, "name": "Cerro de Pasco", "lat": -10.6700, "lon": -76.2500, "country": "PE", "tz": "America/Lima"},
+  {"id": 3694564, "name": "Moyobamba", "lat": -6.0300, "lon": -76.9700, "country": "PE", "tz": "America/Lima"},
+  {"id": 3691148, "name": "Tumbes", "lat": -3.5600, "lon": -80.4400, "country": "PE", "tz": "America/Lima"},
+  {"id": 3693345, "name": "Pucallpa", "lat": -8.3800, "lon": -74.5500, "country": "PE", "tz": "America/Lima"}
 ]
