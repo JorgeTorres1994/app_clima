@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:app_clima/features/auth/application/presentation/login_page.dart';
 import 'package:app_clima/features/auth/application/presentation/register_page.dart';
 import 'package:app_clima/features/favorites/presentation/pages/favorites_page.dart';
-import 'package:app_clima/features/favorites/presentation/pages/settings_page.dart';
+import 'package:app_clima/features/weather/profile/presentation/pages/profile_page.dart';
+import 'package:app_clima/features/weather/settings/application/presentation/pages/settings_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -57,6 +58,7 @@ GoRouter createRouter(WidgetRef ref) {
       GoRoute(path: '/favorites', builder: (_, __) => const FavoritesPage()),
       GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterPage()),
+      GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),       // ✅ NUEVA
     ],
   );
 }
