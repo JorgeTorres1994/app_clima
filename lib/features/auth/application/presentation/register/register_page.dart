@@ -1,5 +1,5 @@
 // lib/features/auth/presentation/pages/register_page.dart
-import 'package:app_clima/features/auth/application/presentation/widgets/register/register_form_card.dart';
+import 'package:app_clima/features/auth/application/presentation/register/widgets/register_form_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -1,3 +1,4 @@
+import 'package:app_clima/features/weather/settings/application/presentation/widgets/favorites_settings_section.dart';
 import 'package:app_clima/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -42,6 +43,9 @@ class SettingsPage extends ConsumerWidget {
           const SizedBox(height: 16),
 
           const SettingsLanguageTile(),
+          const SizedBox(height: 16),
+
+          const FavoritesSettingsSection(),
           const SizedBox(height: 16),
 
           const SettingsAccountSection(),

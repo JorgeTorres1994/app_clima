@@ -1,4 +1,3 @@
-import 'package:app_clima/features/favorites/application/location_providers.dart';
 import 'package:app_clima/features/weather/domain/entities/weather.dart';
 import 'package:app_clima/features/weather/presentation/controllers/weather_providers.dart';
 import 'package:flutter/material.dart';

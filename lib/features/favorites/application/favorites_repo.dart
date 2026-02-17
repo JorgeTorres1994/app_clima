@@ -47,7 +47,12 @@ class FavoritesRepo {
     if (exists) {
       await doc.delete();
     } else {
-      await doc.set({'name': city.name, 'lat': city.lat, 'lon': city.lon});
+      await doc.set({
+        'name': city.name,
+        'lat': city.lat,
+        'lon': city.lon,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
     }
   }
 
@@ -61,6 +66,26 @@ class FavoritesRepo {
   Future<bool> isFavById(String id) async {
     final snap = await _col().doc(id).get();
     return snap.exists;
+  }
+
+  /// Agregar favorito (set)
+  Future<void> add(FavoriteCity city) async {
+    await _col().doc(city.id).set({
+      'name': city.name,
+      'lat': city.lat,
+      'lon': city.lon,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  /// Eliminar favorito (delete)
+  Future<void> remove(FavoriteCity city) async {
+    await _col().doc(city.id).delete();
+  }
+
+  /// Eliminar por id (útil para .family)
+  Future<void> removeById(String id) async {
+    await _col().doc(id).delete();
   }
 }
 

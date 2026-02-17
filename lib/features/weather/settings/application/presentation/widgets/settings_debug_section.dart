@@ -1,5 +1,5 @@
 import 'package:app_clima/features/auth/application/auth_providers.dart';
-import 'package:app_clima/features/favorites/presentation/widgets/clear_favorites_button.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,7 +23,6 @@ class SettingsDebugSection extends ConsumerWidget {
             ),
           ),
         const SizedBox(height: 12),
-        const ClearFavoritesButton(),
       ],
     );
   }

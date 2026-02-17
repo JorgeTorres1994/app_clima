@@ -4,58 +4,64 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../application/favorites_repo.dart';
-import '../../domain/favorite_city.dart';
+import '../widgets/favorite_city_card.dart';
+import '../widgets/favorites_empty_state.dart';
+import '../widgets/favorites_header.dart';
 
 class FavoritesPage extends ConsumerWidget {
   const FavoritesPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final favs = ref.watch(favoritesStreamProvider);
+    final favsAsync = ref.watch(favoritesStreamProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Favoritos')),
-      body: favs.when(
+      appBar: AppBar(
+        title: const Text('Favoritos'),
+      ),
+      body: favsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (list) {
           if (list.isEmpty) {
-            return const Center(child: Text('Aún no tienes favoritos.'));
+            return const FavoritesEmptyState();
           }
-          return ListView.separated(
-            itemCount: list.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemBuilder: (_, i) {
-              final FavoriteCity c = list[i];
-              return ListTile(
-                leading: const Icon(Icons.place_outlined),
-                title: Text(c.name),
-                subtitle: Text('lat ${c.lat}, lon ${c.lon}'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () async {
-                    await ref.read(favoritesRepoProvider).toggle(c);
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Eliminado de favoritos')),
-                      );
-                    }
-                  },
-                ),
-                onTap: () {
-                  // Establece ciudad y regresa al Home
-                  ref.read(selectedCityProvider.notifier).state =
-                      // Si tu CitySelection admite 'displayName', usa esa línea;
-                      // si no existe, usa el constructor sin named param.
-                      CitySelection(c.name, c.lat, c.lon, display: c.name);
-                  // CitySelection(c.name, c.lat, c.lon);
 
-                  ref.invalidate(currentWeatherByCityProvider);
-                  ref.invalidate(forecastByCityProvider);
-                  context.go('/'); // Home
-                },
-              );
-            },
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+            children: [
+              FavoritesHeader(count: list.length),
+              const SizedBox(height: 12),
+
+              ...list.map((c) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: FavoriteCityCard(
+                    city: c,
+                    onOpen: () {
+                      ref.read(selectedCityProvider.notifier).state =
+                          CitySelection(c.name, c.lat, c.lon, display: c.name);
+
+                      ref.invalidate(currentWeatherByCityProvider);
+                      ref.invalidate(forecastByCityProvider);
+                      context.go('/'); // Home
+                    },
+                    onDelete: () async {
+                      await ref.read(favoritesRepoProvider).toggle(c);
+                      ref.invalidate(favoritesStreamProvider);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${c.name} eliminado de favoritos'),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                );
+              }),
+            ],
           );
         },
       ),
